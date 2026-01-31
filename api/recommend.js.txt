@@ -1,0 +1,20 @@
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
+export default async function handler(req, res) {
+  try {
+    const body = await new Promise((resolve) => {
+      let data = "";
+      req.on("data", (chunk) => (data += chunk));
+      req.on("end", () => resolve(JSON.parse(data)));
+    });
+
+    const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+
+    const result = await model.generateContent(body.prompt);
+
+    res.status(200).json({ text: result.response.text() });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}

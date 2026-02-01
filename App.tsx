@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect } from 'react';
-import { API_KEY } from "./services/api";
 import Header from './components/Header';
 import PruningAssistant from './components/PruningAssistant';
 import PhenologyGuide from './components/PhenologyGuide';

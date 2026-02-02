@@ -1,7 +1,0 @@
-{
-  "name": "VitisExpert - Weinbau Assistent",
-  "description": "Ein fachlich präziser Weinbau-Assistent für Hobby-Winzer, der phänologisch begründete Schnittempfehlungen gibt.",
-  "requestFramePermissions": [
-    "geolocation"
-  ]
-}

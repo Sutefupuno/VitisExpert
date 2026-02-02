@@ -1,41 +1,39 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { GoogleGenAI, Type } from "@google/genai";
 
-export const config = {
-  runtime: 'edge',
-};
+export default async function handler(req: any, res: any) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
 
-export async function POST(req: NextRequest) {
   try {
-    const { prompt } = await req.json();
+    const { prompt } = req.body;
 
     const apiKey = process.env.GOOGLE_API_KEY;
-    if (!apiKey) {
-      return NextResponse.json(
-        { error: "Missing GOOGLE_API_KEY" },
-        { status: 500 }
-      );
-    }
+    if (!apiKey) return res.status(500).json({ error: "Missing GOOGLE_API_KEY" });
 
-    const response = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=" + apiKey,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [{ text: prompt }],
-            },
-          ],
-        }),
+    const ai = new GoogleGenAI({ apiKey });
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            verdict: { type: Type.STRING },
+            justification: { type: Type.STRING },
+            commonMistakes: { type: Type.ARRAY, items: { type: Type.STRING } },
+            alternativeStrategy: { type: Type.STRING }
+          },
+          required: ['verdict', 'justification', 'commonMistakes']
+        }
       }
-    );
+    });
 
-    const data = await response.json();
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-
-    return NextResponse.json({ text });
+    const text = response.text || '{}';
+    res.status(200).json(JSON.parse(text));
   } catch (err) {
-    return NextResponse.json({ error: err + "" }, { status: 500 });
+    res.status(500).json({ error: err + "" });
   }
 }
